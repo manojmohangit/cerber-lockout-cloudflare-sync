@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Architecture — Cerber Lockout Cloudflare Sync</title>
+    <meta name="description" content="Plugin security design, credentials protection details, multi-level capability verification, and secure API data flow mappings.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" id="nav-logo">Cerber CF Sync</a>
+                <ul class="nav-links">
+                    <li><a href="index.html" id="link-home">Home</a></li>
+                    <li><a href="documentation.html" id="link-docs">Documentation</a></li>
+                    <li><a href="security.html" class="active" id="link-security">Security</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container doc-layout">
+        <h1 id="security-title">Security Architecture</h1>
+        <p class="subtitle">Deep-dive explanation of the plugin security defenses, data leakage prevention, and validation layers.</p>
+
+        <section id="threat-model">
+            <h2>1. Credentials Protection & Encapsulation</h2>
+            <p>Our architectural design prioritizes the protection of high-privilege credentials like API tokens. The plugin implements strict safeguards to protect this sensitive data:</p>
+
+            <div class="grid-security">
+                <div class="security-card" id="sec-card-mask">
+                    <h3>No Credentials Logging</h3>
+                    <p>The plugin API client and notification handler are designed to never output, print, or log credentials in transient errors, debug dumps, or administrator emails.</p>
+                </div>
+                <div class="security-card" id="sec-card-obscure">
+                    <h3>Obscured Admin Fields</h3>
+                    <p>Settings fields containing Cloudflare Account IDs and API Tokens are rendered as <code>password</code> input types, preventing credentials visibility on browser screens.</p>
+                </div>
+                <div class="security-card" id="sec-card-constant">
+                    <h3>Constants Integration</h3>
+                    <p>By defining settings inside <code>wp-config.php</code> using constants, you avoid writing credentials to the database options table entirely, mitigating SQL injection leaks.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="access-control">
+            <h2>2. Access Control Layers</h2>
+            <p>Authorization verification is enforced at 5 different logical checkpoints to block privilege escalation attacks:</p>
+            <ul>
+                <li><strong>Menu Page Registration:</strong> The page registration restricts visibility to users holding the <code>manage_options</code> capability.</li>
+                <li><strong>Page Render Guard:</strong> Before outputting settings or diagnostic forms, the plugin explicitly executes <code>current_user_can( 'manage_options' )</code> to deny access to unauthorized sessions.</li>
+                <li><strong>Settings API Validation:</strong> The sanitization filter verifies inputs before saving values to database parameters.</li>
+                <li><strong>AJAX Request Handlers:</strong> Every background diagnostic action enforces capability checks and returns JSON errors on invalid sessions.</li>
+                <li><strong>Explicit AJAX Registrations:</strong> The plugin does <strong>NOT</strong> register public-facing <code>wp_ajax_nopriv_</code> actions, locking AJAX endpoints to logged-in administrators.</li>
+            </ul>
+        </section>
+
+        <section id="data-flow">
+            <h2>3. Locked IP Data Flow Mappings</h2>
+            <p>This flowchart represents the journey of a blocked IP from lockout detection to edge blocking:</p>
+
+            <div class="flowchart" id="flowchart-container">
+                <div class="flow-node" id="node-wp-lockout">
+                    <h4>Step 1: Local WordPress Lockout</h4>
+                    <p>WP Cerber Security detects intrusion attempts and locks out the source IP address.</p>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-node" id="node-hook">
+                    <h4>Step 2: Action Hook Interception</h4>
+                    <p>The plugin listens to <code>cerber_ip_locked</code>, capturing the IP address and lockout reason.</p>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-node" id="node-validation">
+                    <h4>Step 3: Verification & Local Cache Check</h4>
+                    <p>Sanitizer validates the IP format. The system checks database transients to avoid duplicate API requests.</p>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-node" id="node-api">
+                    <h4>Step 4: Cloudflare API Request</h4>
+                    <p>API Client queries Cloudflare's Account IP list, appending the IP if it does not already exist.</p>
+                </div>
+                <div class="flow-arrow">&darr;</div>
+                <div class="flow-node" id="node-edge">
+                    <h4>Step 5: Edge Mitigation Active</h4>
+                    <p>Cloudflare Firewall intercepts and drops all network requests from the IP before reaching your origin server.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Cerber Lockout Cloudflare Sync. Developed by <a href="https://manojmohan.dev" target="_blank" rel="noopener">Manoj Mohan</a>.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

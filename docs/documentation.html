@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation — Cerber Lockout Cloudflare Sync</title>
+    <meta name="description" content="Step-by-step setup guide, credentials resolution priority, and Cloudflare API Token permissions required for Account IP Lists sync.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" id="nav-logo">Cerber CF Sync</a>
+                <ul class="nav-links">
+                    <li><a href="index.html" id="link-home">Home</a></li>
+                    <li><a href="documentation.html" class="active" id="link-docs">Documentation</a></li>
+                    <li><a href="security.html" id="link-security">Security</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container doc-layout">
+        <h1 id="doc-title">Configuration & Setup Guide</h1>
+        <p class="subtitle">Complete implementation workflow, token permissions architecture, and fallback configuration strategies.</p>
+
+        <section id="cloudflare-permissions">
+            <h2>1. Cloudflare Token Permissions</h2>
+            <p>To synchronize IP addresses securely, you must create a custom API Token on your Cloudflare dashboard with restricted write capabilities. For reference, you can consult the official <a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank">Cloudflare API Token Documentation ↗</a>. Do <strong>NOT</strong> use your Global API Key in production.</p>
+            
+            <div class="alert-box" id="perm-alert">
+                <h4>⚠️ Required Token Permissions Scope</h4>
+                <p>The token must be authorized with exactly the following scope:
+                <br><strong>Account > Account Filter Lists > Edit</strong>
+                <br><em>If this specific scope is missing, the API Client will trigger a 403 Forbidden error and suspend synchronization.</em></p>
+            </div>
+
+            <h3>Steps to create the token:</h3>
+            <ol>
+                <li>Log in to your <strong>Cloudflare Dashboard</strong>.</li>
+                <li>Go to the top right profile icon and select <strong>My Profile > API Tokens</strong>.</li>
+                <li>Click <strong>Create Token</strong>, choose <strong>Create Custom Token</strong>.</li>
+                <li>Give the token a name (e.g., <code>WP Cerber lockout sync</code>).</li>
+                <li>Under <strong>Permissions</strong>, select:
+                    <ul>
+                        <li><strong>Account</strong> | <strong>Account Filter Lists</strong> | <strong>Edit</strong></li>
+                    </ul>
+                </li>
+                <li>Under <strong>Account Resources</strong>, select your target account.</li>
+                <li>Complete verification and copy the generated token string.</li>
+            </ol>
+        </section>
+
+        <section id="wp-configuration">
+            <h2>2. WordPress Configuration</h2>
+            <p>Once you install the plugin zip, configure it directly within the WordPress dashboard.</p>
+            
+            <ul class="step-list">
+                <li>
+                    <strong>Access the settings screen:</strong>
+                    Go to <strong>Settings > Cerber CF Sync</strong> in your WordPress administration panel.
+                </li>
+                <li>
+                    <strong>Input Cloudflare IDs:</strong>
+                    Provide your <strong>Cloudflare Account ID</strong> and the specific <strong>List ID</strong> of the IP list you wish to sync blocks into (located under Configurations > Lists in Cloudflare). For more information, check the official <a href="https://developers.cloudflare.com/waf/tools/lists/" target="_blank">Cloudflare Lists Documentation ↗</a>.
+                </li>
+                <li>
+                    <strong>Provide the API Token:</strong>
+                    Input the token copied in Section 1. If you prefer to define credentials in your code, you can use PHP constants.
+                </li>
+                <li>
+                    <strong>Test Connection:</strong>
+                    Scroll to the Diagnostics section and click <strong>Test Connection</strong>. The system will make a secure GET query to Cloudflare to verify credentials.
+                </li>
+            </ul>
+        </section>
+
+        <section id="credential-fallbacks">
+            <h2>3. Credential Fallback Resolution</h2>
+            <p>The plugin resolves Cloudflare credentials dynamically. If database settings are empty, it searches other system contexts in the following order:</p>
+            
+            <h3>Priority Hierarchy:</h3>
+            <ol>
+                <li><strong>Plugin Settings:</strong> Values submitted via the settings form (stored in <code>wp_options</code>).</li>
+                <li><strong>PHP Constants:</strong> Values declared in <code>wp-config.php</code> (never stored in the database).</li>
+                <li><strong>Cloudflare Official Plugin:</strong> Configuration values from the official WordPress Cloudflare plugin database entries.</li>
+            </ol>
+
+            <div class="alert-box" id="security-constants-alert">
+                <h4>🔒 Security Recommendation: Use PHP Constants</h4>
+                <p>
+                    When credentials are saved via the settings form, they are stored as <strong>plaintext in the WordPress database</strong> (<code>wp_options</code> table). This means they can be exposed through:
+                </p>
+                <ul>
+                    <li>Database backups stored without encryption</li>
+                    <li>SQL injection vulnerabilities in other plugins</li>
+                    <li>Compromised database admin tools (e.g., phpMyAdmin)</li>
+                    <li>Shared hosting environments with weak isolation</li>
+                </ul>
+                <p>
+                    <strong>For production environments, define your credentials as PHP constants in <code>wp-config.php</code> instead.</strong>
+                    This keeps sensitive tokens out of the database entirely. The <code>wp-config.php</code> file resides on the server filesystem and — on properly configured hosts — is located outside the public web root.
+                </p>
+            </div>
+
+            <h3>Defining constants in wp-config.php:</h3>
+            <p>Add the following lines to your <code>wp-config.php</code> file, <strong>above</strong> the line that reads <code>/* That's all, stop editing! */</code>:</p>
+
+            <div class="code-container" id="code-constants">
+                <button class="btn-copy" onclick="copyCode('code-block-constants')">Copy</button>
+                <pre id="code-block-constants"><code>// Cerber Lockout Cloudflare Sync — Credentials
+define( 'CLOUDFLARE_API_TOKEN',  'your_cloudflare_api_token_here' );
+define( 'CLOUDFLARE_ACCOUNT_ID', 'your_32_char_account_id_here' );
+define( 'CLOUDFLARE_LIST_ID',    'your_32_char_list_id_here' );</code></pre>
+            </div>
+
+            <h3>All Supported Constants:</h3>
+            <p>The following constants are recognised by the plugin. Only <code>CLOUDFLARE_API_TOKEN</code>, <code>CLOUDFLARE_ACCOUNT_ID</code>, and <code>CLOUDFLARE_LIST_ID</code> are required.</p>
+
+            <table class="constants-table">
+                <thead>
+                    <tr>
+                        <th>Constant</th>
+                        <th>Description</th>
+                        <th>Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>CLOUDFLARE_API_TOKEN</code></td>
+                        <td>API Token with <strong>Account Filter Lists: Edit</strong> permission. This is the recommended authentication method.</td>
+                        <td>Yes *</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLOUDFLARE_ACCOUNT_ID</code></td>
+                        <td>Your Cloudflare Account ID (32-character hex string, found on the dashboard overview page).</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLOUDFLARE_LIST_ID</code></td>
+                        <td>The ID of the target IP List (32-character hex string, found under Configurations &gt; Lists).</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLOUDFLARE_API_KEY</code></td>
+                        <td>Legacy Global API Key. Used only if <code>CLOUDFLARE_API_TOKEN</code> is not defined. <strong>Not recommended</strong> — grants full account access.</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLOUDFLARE_EMAIL</code></td>
+                        <td>Account email associated with the Global API Key. Required only when using <code>CLOUDFLARE_API_KEY</code>.</td>
+                        <td>No</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><small>* If <code>CLOUDFLARE_API_TOKEN</code> is not defined, the plugin will attempt to resolve credentials from <code>CLOUDFLARE_API_KEY</code> or the official Cloudflare plugin's stored settings.</small></p>
+
+        </section>
+
+        <section id="notifications-setup">
+            <h2>4. Notification Alerts</h2>
+            <p>The plugin contains an alert system. By default, it emails the administrator if the Cloudflare API returns an authorization error (such as an expired token). The notification email is rate-limited to <strong>1 email per hour</strong> to prevent server load or email server blocklisting during an active attack.</p>
+            <p>You can also enable <strong>Success Notifications</strong> in the configuration screen to receive alerts for every successful IP block sync.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Cerber Lockout Cloudflare Sync. Developed by <a href="https://manojmohan.dev" target="_blank" rel="noopener">Manoj Mohan</a>.</p>
+        </div>
+    </footer>
+
+    <script type="text/javascript">
+        function copyCode(elementId) {
+            var codeText = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(codeText).then(function() {
+                var btn = document.querySelector('#' + elementId).previousElementSibling;
+                var originalText = btn.innerText;
+                btn.innerText = 'Copied!';
+                setTimeout(function() {
+                    btn.innerText = originalText;
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

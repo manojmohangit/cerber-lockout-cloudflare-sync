@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerber Lockout Cloudflare Sync — Edge-Level Lockout Automation</title>
+    <meta name="description"
+        content="Synchronize WP Cerber lockout events to Cloudflare IP lists in real time for premium, edge-level security mitigation. Developed by Manoj Mohan.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" id="nav-logo">Cerber CF Sync</a>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active" id="link-home">Home</a></li>
+                    <li><a href="documentation.html" id="link-docs">Documentation</a></li>
+                    <li><a href="security.html" id="link-security">Security</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Stop Brute Force Attacks at the Edge, <span>Automatically</span></h1>
+            <p>Offload server load by synchronizing local WP Cerber IP lockout events directly to your Cloudflare
+                Account IP Lists. Block malicious bots at the edge before they consume a single byte of your origin
+                server's bandwidth.</p>
+            <div class="cta-group">
+                <a href="../dist/cerber-lockout-cloudflare-sync-v1.0.0.zip" class="btn btn-primary"
+                    id="btn-download">Download Plugin ZIP</a>
+                <a href="documentation.html" class="btn btn-secondary" id="btn-learn-more">Read Setup Guide</a>
+            </div>
+        </section>
+
+        <!-- Storyline Section -->
+        <section class="storyline" id="section-storyline">
+            <div class="dependency-badge" id="badge-dependency">
+                <span class="badge-icon">🧩</span> Requires Active WP Cerber Security Installation
+            </div>
+
+            <h2 class="section-title" style="margin-bottom: 16px;">Extending WP Cerber to the Edge</h2>
+            <p class="story-intro">WP Cerber is a world-class detection engine, but it is bounded by your server's
+                hardware limits. Our plugin bridges WP Cerber's local lockout intelligence with Cloudflare's edge
+                network to form an impenetrable barrier.</p>
+
+            <div class="story-timeline" id="timeline-story">
+                <div class="story-step" id="step-detect">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h3>WP Cerber Detects & Locks</h3>
+                        <p>A botnet attempts brute-force logins. WP Cerber Security detects the malicious activity and
+                            successfully locks out the IP address locally.</p>
+                    </div>
+                </div>
+                <div class="story-step" id="step-bridge">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h3>The Plugin Bridges the Event</h3>
+                        <p>The moment WP Cerber locks the IP, our plugin intercepts the event, sanitizes the IP address,
+                            and prepares the API payload.</p>
+                    </div>
+                </div>
+                <div class="story-step" id="step-sync">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h3>Immediate Edge Sync</h3>
+                        <p>The plugin securely transmits the IP to your Cloudflare IP List. The block is applied across
+                            Cloudflare’s global edge locations within milliseconds.</p>
+                    </div>
+                </div>
+                <div class="story-step" id="step-protect">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h3>Server Load Dropped to Zero</h3>
+                        <p>Subsequent requests from that blocked IP are discarded at the CDN level. They never reach
+                            your WordPress host, saving CPU and database resources.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2 class="section-title">Why Cerber Lockout Cloudflare Sync?</h2>
+            <div class="features-grid">
+                <div class="card" id="card-edge-block">
+                    <span class="card-icon">⚡</span>
+                    <h3>Zero-Latency Blocking</h3>
+                    <p>Drop malicious traffic on Cloudflare's network, keeping your server CPU and memory completely
+                        free from repeat offenders.</p>
+                </div>
+                <div class="card" id="card-v4-v6">
+                    <span class="card-icon">🌐</span>
+                    <h3>Dual-Stack Validation</h3>
+                    <p>Complete support for both IPv4 and IPv6 addresses, keeping all brute force and network-level
+                        vectors fully covered.</p>
+                </div>
+                <div class="card" id="card-circuit-breaker">
+                    <span class="card-icon">🛡️</span>
+                    <h3>Intelligent Caching</h3>
+                    <p>Local database transients cache lockout states to prevent duplicate API requests and avoid
+                        Cloudflare rate-limiting.</p>
+                </div>
+                <div class="card" id="card-auto-credentials">
+                    <span class="card-icon">⚙️</span>
+                    <h3>Smart Fallback API</h3>
+                    <p>Resolves credentials dynamically from environmental PHP constants or existing configurations in
+                        the official Cloudflare plugin.</p>
+                </div>
+                <div class="card" id="card-alerts">
+                    <span class="card-icon">📧</span>
+                    <h3>Rate-Limited Warnings</h3>
+                    <p>Get critical status alerts sent straight to your inbox. Features smart rate-limiting (1 warning
+                        per hour) to avoid inbox spam.</p>
+                </div>
+                <div class="card" id="card-admin-ui">
+                    <span class="card-icon">🎛️</span>
+                    <h3>Admin Command Center</h3>
+                    <p>Run secure connection checks, execute manual lockout syncs, and flush caches directly from your
+                        WordPress Settings screen.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-banner" id="banner-download">
+            <h2>Ready to secure your WordPress installation?</h2>
+            <p>Download the production ZIP file, install it in your WordPress admin panel, and experience zero-bandwidth
+                brute force mitigation.</p>
+            <a href="../dist/cerber-lockout-cloudflare-sync-v1.0.0.zip" class="btn btn-primary"
+                id="btn-banner-download">Download v1.0.0 ZIP</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Cerber Lockout Cloudflare Sync. Developed by <a href="https://manojmohan.dev" target="_blank"
+                    rel="noopener">Manoj Mohan</a>.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
