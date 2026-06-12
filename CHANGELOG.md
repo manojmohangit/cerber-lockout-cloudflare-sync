@@ -17,3 +17,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Diagnostic Panel**: AJAX actions for Test Connection, Manual IP Lockout, and Clear Transient Cache.
 - **Email Notifications**: Action success and API error alerts, with built-in rate-limiting and permission failure alerts (Account Filter Lists: Edit).
 - **Uninstall Teardown**: Complete database option and transient cleanup upon plugin deletion.
+- **Distribution Build**: Added versioned installable WordPress plugin ZIP file at `dist/cerber-lockout-cloudflare-sync-v1.0.0.zip`.
