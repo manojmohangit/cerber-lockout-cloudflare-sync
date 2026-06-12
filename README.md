@@ -12,6 +12,7 @@ Developed by **Manoj Mohan** ([manojmohan.dev](https://manojmohan.dev)).
 - **Automatic Token Resolution**: Supports fallback token resolution from constants (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_API_KEY`) and database values from the official Cloudflare plugin.
 - **Admin Control Panel**: Sleek, WordPress-native card-based settings page (`Settings > Cerber CF Sync`) protected by administrator capability checks.
 - **Interactive Control Center**: Features diagnostic AJAX tools to manually test the API connection, manually block IPs, or clear local transients.
+- **List Capacity Monitoring**: Displays Cloudflare IP list size and percentage utilization in real-time, with persistent admin warning notifications when approaching the 10,000-item limit.
 - **Notification System**: Rate-limited email alerts sent to the administrator upon synchronization success or API token failure.
 
 ## Directory Structure
@@ -47,4 +48,5 @@ cerber-lockout-cloudflare-sync/
 
 ## License
 
-This project is proprietary. Developed by Manoj Mohan.
+Licensed under the [GPL-2.0 License](https://www.gnu.org/licenses/gpl-2.0.html). Developed by Manoj Mohan.
+

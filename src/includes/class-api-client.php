@@ -314,4 +314,50 @@ class Cerber_CF_Sync_API_Client {
 
 		return true;
 	}
+
+	/**
+	 * Get the current item count of the Cloudflare List.
+	 *
+	 * @return int|WP_Error Item count, or WP_Error on failure.
+	 */
+	public function get_list_item_count() {
+		$creds = $this->get_credentials();
+
+		$valid = $this->validate_credentials( $creds );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$url = sprintf(
+			'%s/accounts/%s/rules/lists/%s',
+			self::API_BASE,
+			urlencode( $creds['account_id'] ),
+			urlencode( $creds['list_id'] )
+		);
+
+		$args = array(
+			'method'  => 'GET',
+			'headers' => $this->build_headers( $creds ),
+			'timeout' => 15,
+		);
+
+		$response = $this->send_request( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( isset( $data['result']['num_items'] ) ) {
+			return (int) $data['result']['num_items'];
+		}
+
+		return new WP_Error(
+			'cf_invalid_list_response',
+			__( 'Could not retrieve item count from list metadata response.', 'cerber-lockout-cloudflare-sync' )
+		);
+	}
 }
+

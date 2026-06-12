@@ -48,11 +48,13 @@ class Cerber_CF_Sync_Admin_UI {
 		// Register settings page and section/fields.
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_plugin_settings' ) );
+		add_action( 'admin_notices', array( $this, 'capacity_warning_notice' ) );
 
 		// Register AJAX actions.
 		add_action( 'wp_ajax_cf_sync_test_connection', array( $this, 'ajax_test_connection' ) );
 		add_action( 'wp_ajax_cf_sync_manual_ip', array( $this, 'ajax_manual_ip' ) );
 		add_action( 'wp_ajax_cf_sync_clear_cache', array( $this, 'ajax_clear_cache' ) );
+		add_action( 'wp_ajax_cf_sync_refresh_count', array( $this, 'ajax_refresh_count' ) );
 	}
 
 	/**
@@ -134,6 +136,14 @@ class Cerber_CF_Sync_Admin_UI {
 			'cerber-cf-sync',
 			'cerber_cf_sync_section_credentials'
 		);
+
+		add_settings_field(
+			'warning_threshold',
+			__( 'Capacity Warning Threshold', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_warning_threshold_field' ),
+			'cerber-cf-sync',
+			'cerber_cf_sync_section_credentials'
+		);
 	}
 
 	/**
@@ -162,6 +172,13 @@ class Cerber_CF_Sync_Admin_UI {
 		}
 
 		$sanitized['enable_success_emails'] = ! empty( $input['enable_success_emails'] ) ? '1' : '0';
+
+		if ( isset( $input['warning_threshold'] ) ) {
+			$val = (int) $input['warning_threshold'];
+			$sanitized['warning_threshold'] = ( $val >= 1000 && $val <= 10000 ) ? $val : 9000;
+		} else {
+			$sanitized['warning_threshold'] = 9000;
+		}
 
 		return $sanitized;
 	}
@@ -281,11 +298,68 @@ class Cerber_CF_Sync_Admin_UI {
 	}
 
 	/**
+	 * Render Warning Threshold Field.
+	 */
+	public function render_warning_threshold_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$val      = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
+
+		echo '<input type="number" class="small-text" name="cerber_cf_sync_settings[warning_threshold]" value="' . esc_attr( $val ) . '" min="1000" max="10000" step="100" />';
+		echo '<p class="description">' . esc_html__( 'Trigger a warning notice when the Cloudflare list item count reaches or exceeds this value. Must be between 1,000 and 10,000 (default is 9,000).', 'cerber-lockout-cloudflare-sync' ) . '</p>';
+	}
+
+	/**
+	 * Show an admin notice if the Cloudflare List is nearing capacity.
+	 */
+	public function capacity_warning_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+		if ( $screen && 'settings_page_cerber-cf-sync' === $screen->id ) {
+			return;
+		}
+
+		$list_count = get_transient( 'cerber_cf_sync_list_count' );
+
+		if ( false === $list_count || is_wp_error( $list_count ) ) {
+			return;
+		}
+
+		$settings  = get_option( 'cerber_cf_sync_settings', array() );
+		$threshold = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
+
+		if ( $list_count >= $threshold ) {
+			$class = $list_count >= 10000 ? 'notice-error' : 'notice-warning';
+			printf(
+				'<div class="notice %s"><p><strong>%s</strong> %s</p></div>',
+				esc_attr( $class ),
+				esc_html__( 'Cerber Lockout Cloudflare Sync Capacity Alert:', 'cerber-lockout-cloudflare-sync' ),
+				sprintf(
+					esc_html__( 'The Cloudflare Account IP List is nearing capacity. Current size: %s / 10,000 items. Please log in to your Cloudflare dashboard and prune old items to ensure uninterrupted lockout synchronization.', 'cerber-lockout-cloudflare-sync' ),
+					esc_html( number_format_i18n( $list_count ) )
+				)
+			);
+		}
+	}
+
+	/**
 	 * Render Settings Page HTML.
 	 */
 	public function render_settings_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'cerber-lockout-cloudflare-sync' ) );
+		}
+
+		$api_client = new Cerber_CF_Sync_API_Client();
+		$list_count = get_transient( 'cerber_cf_sync_list_count' );
+
+		if ( false === $list_count ) {
+			$list_count = $api_client->get_list_item_count();
+			if ( ! is_wp_error( $list_count ) ) {
+				set_transient( 'cerber_cf_sync_list_count', $list_count, HOUR_IN_SECONDS );
+			}
 		}
 		?>
 		<div class="wrap cerber-cf-sync-wrap">
@@ -347,6 +421,42 @@ class Cerber_CF_Sync_Admin_UI {
 							</div>
 						</div>
 						<div id="clear-cache-output" class="output-log hidden"></div>
+
+						<!-- IP List Capacity Status -->
+						<div class="action-row">
+							<div class="action-info">
+								<h3><?php esc_html_e( 'Cloudflare IP List Capacity', 'cerber-lockout-cloudflare-sync' ); ?></h3>
+								<p>
+									<?php
+									if ( is_wp_error( $list_count ) ) {
+										echo '<span style="color: hsl(0, 75%, 50%); font-weight: 500;">' . esc_html__( 'Unable to retrieve capacity data. Verify API credentials.', 'cerber-lockout-cloudflare-sync' ) . '</span>';
+									} else {
+										$settings  = get_option( 'cerber_cf_sync_settings', array() );
+										$threshold = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
+										$percent   = round( ( $list_count / 10000 ) * 100, 1 );
+
+										$color = 'hsl(140, 50%, 40%)';
+										if ( $list_count >= 10000 ) {
+											$color = 'hsl(0, 75%, 50%)';
+										} elseif ( $list_count >= $threshold ) {
+											$color = 'hsl(35, 90%, 50%)';
+										}
+
+										printf(
+											__( 'Current size: <strong style="color: %s;">%s</strong> / 10,000 items (%s%% capacity)', 'cerber-lockout-cloudflare-sync' ),
+											esc_attr( $color ),
+											esc_html( number_format_i18n( $list_count ) ),
+											esc_html( $percent )
+										);
+									}
+									?>
+								</p>
+							</div>
+							<div class="action-trigger">
+								<button type="button" id="btn-refresh-count" class="button button-secondary"><?php esc_html_e( 'Refresh Capacity', 'cerber-lockout-cloudflare-sync' ); ?></button>
+							</div>
+						</div>
+						<div id="refresh-count-output" class="output-log hidden"></div>
 					</div>
 				</div>
 			</div>
@@ -569,6 +679,34 @@ class Cerber_CF_Sync_Admin_UI {
 						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Flush Cache', 'cerber-lockout-cloudflare-sync' ) ); ?>');
 					});
 				});
+
+				// Refresh Capacity AJAX
+				$('#btn-refresh-count').on('click', function(e) {
+					e.preventDefault();
+					var $btn = $(this);
+					var $log = $('#refresh-count-output');
+					
+					$btn.prop('disabled', true).text('<?php echo esc_js( __( 'Refreshing...', 'cerber-lockout-cloudflare-sync' ) ); ?>');
+					$log.addClass('hidden');
+
+					$.post(ajaxurl, {
+						action: 'cf_sync_refresh_count',
+						nonce: ajaxNonce
+					}, function(response) {
+						if (response.success) {
+							showLog($log, response.data.message, 'success');
+							setTimeout(function() {
+								location.reload();
+							}, 1500);
+						} else {
+							showLog($log, response.data.message, 'error');
+						}
+					}).fail(function() {
+						showLog($log, '<?php echo esc_js( __( 'Refresh communication failed.', 'cerber-lockout-cloudflare-sync' ) ); ?>', 'error');
+					}).always(function() {
+						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Refresh Capacity', 'cerber-lockout-cloudflare-sync' ) ); ?>');
+					});
+				});
 			});
 		</script>
 		<?php
@@ -593,6 +731,18 @@ class Cerber_CF_Sync_Admin_UI {
 
 		if ( is_wp_error( $test ) ) {
 			wp_send_json_error( array( 'message' => $test->get_error_message() ) );
+		}
+
+		// Cache list count as part of test connection.
+		$count = $api_client->get_list_item_count();
+		if ( ! is_wp_error( $count ) ) {
+			set_transient( 'cerber_cf_sync_list_count', $count, HOUR_IN_SECONDS );
+			wp_send_json_success( array(
+				'message' => sprintf(
+					__( 'Success! Successfully established connection with Cloudflare Account List API. The list currently contains %d items.', 'cerber-lockout-cloudflare-sync' ),
+					$count
+				)
+			) );
 		}
 
 		wp_send_json_success( array( 'message' => __( 'Success! Successfully established connection with Cloudflare Account List API.', 'cerber-lockout-cloudflare-sync' ) ) );
@@ -660,7 +810,46 @@ class Cerber_CF_Sync_Admin_UI {
 
 		// Reset error notification rate limiter.
 		delete_transient( 'cf_sync_err_email_sent' );
+		delete_transient( 'cerber_cf_sync_list_count' );
 
 		wp_send_json_success( array( 'message' => sprintf( __( 'Success! Local transient cache successfully cleared. Removed %d cache entries.', 'cerber-lockout-cloudflare-sync' ), intval( $deleted_count / 2 ) ) ) );
+	}
+
+	/**
+	 * AJAX Handler: Refresh and return the current list item count.
+	 */
+	public function ajax_refresh_count() {
+		// Capability check.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
+		}
+
+		// Nonce check.
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
+		}
+
+		$api_client = new Cerber_CF_Sync_API_Client();
+		$count      = $api_client->get_list_item_count();
+
+		if ( is_wp_error( $count ) ) {
+			wp_send_json_error( array( 'message' => $count->get_error_message() ) );
+		}
+
+		set_transient( 'cerber_cf_sync_list_count', $count, HOUR_IN_SECONDS );
+
+		$settings  = get_option( 'cerber_cf_sync_settings', array() );
+		$threshold = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
+		$percent   = round( ( $count / 10000 ) * 100, 1 );
+
+		wp_send_json_success( array(
+			'count'   => $count,
+			'percent' => $percent,
+			'message' => sprintf(
+				__( 'Success! Current size: %s / 10,000 items (%s%% capacity).', 'cerber-lockout-cloudflare-sync' ),
+				number_format_i18n( $count ),
+				$percent
+			)
+		) );
 	}
 }

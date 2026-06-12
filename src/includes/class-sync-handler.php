@@ -100,6 +100,13 @@ class Cerber_CF_Sync_Handler {
 		}
 
 		set_transient( $transient_key, '1', DAY_IN_SECONDS );
+
+		// Increment the cached count if it exists.
+		$list_count = get_transient( 'cerber_cf_sync_list_count' );
+		if ( false !== $list_count && ! is_wp_error( $list_count ) ) {
+			set_transient( 'cerber_cf_sync_list_count', $list_count + 1, HOUR_IN_SECONDS );
+		}
+
 		return true;
 	}
 }

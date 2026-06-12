@@ -168,6 +168,17 @@ define( 'CLOUDFLARE_LIST_ID',    'your_32_char_list_id_here' );</code></pre>
             <p>The plugin contains an alert system. By default, it emails the administrator if the Cloudflare API returns an authorization error (such as an expired token). The notification email is rate-limited to <strong>1 email per hour</strong> to prevent server load or email server blocklisting during an active attack.</p>
             <p>You can also enable <strong>Success Notifications</strong> in the configuration screen to receive alerts for every successful IP block sync.</p>
         </section>
+
+        <section id="capacity-limits">
+            <h2>5. Cloudflare List Capacity & Monitoring</h2>
+            <p>Cloudflare Account IP Lists have a strict capacity limit of <strong>10,000 items</strong>. If the list is saturated, Cloudflare will reject new IP additions, causing synchronization to fail.</p>
+            
+            <h3>Capacity Tracking:</h3>
+            <ul>
+                <li><strong>Real-time Indicators:</strong> The plugin displays the current list size and percentage capacity directly under the settings page's <em>Diagnostics & Control Center</em>.</li>
+                <li><strong>Capacity Warnings:</strong> You can configure a <strong>Capacity Warning Threshold</strong> (defaults to <code>9,000</code>). When the list item count exceeds this threshold, a persistent warning notification will be shown on the main WordPress dashboard, prompting you to log in to Cloudflare to prune old IP blocks.</li>
+            </ul>
+        </section>
     </main>
 
     <footer>
