@@ -66,15 +66,34 @@ function cerber_cf_sync_plugin_action_links( $links ) {
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'cerber_cf_sync_plugin_action_links' );
 
 /**
- * Show an admin notice if WP Cerber Security is not active.
+ * Check if WP Cerber is active during plugin activation.
+ */
+function cerber_cf_sync_activate() {
+	if ( ! function_exists( 'cerber_get_options' ) && ! defined( 'CERBER_VER' ) ) {
+		if ( ! function_exists( 'deactivate_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		deactivate_plugins( plugin_basename( __FILE__ ) );
+		wp_die(
+			esc_html__( 'Cerber Lockout Cloudflare Sync requires the WP Cerber Security plugin to be active.', 'cerber-lockout-cloudflare-sync' ),
+			esc_html__( 'Dependency Required', 'cerber-lockout-cloudflare-sync' ),
+			array( 'back_link' => true )
+		);
+	}
+}
+register_activation_hook( __FILE__, 'cerber_cf_sync_activate' );
+
+/**
+ * Show a persistent admin notice if WP Cerber Security is not active.
  */
 function cerber_cf_sync_dependency_notice() {
 	if ( ! function_exists( 'cerber_get_options' ) && ! defined( 'CERBER_VER' ) ) {
 		printf(
-			'<div class="notice notice-warning is-dismissible"><p><strong>%s</strong> %s</p></div>',
+			'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
 			esc_html__( 'Cerber Lockout Cloudflare Sync:', 'cerber-lockout-cloudflare-sync' ),
 			esc_html__( 'WP Cerber Security plugin is not active. This plugin requires WP Cerber to intercept IP lockout events.', 'cerber-lockout-cloudflare-sync' )
 		);
 	}
 }
 add_action( 'admin_notices', 'cerber_cf_sync_dependency_notice' );
+
