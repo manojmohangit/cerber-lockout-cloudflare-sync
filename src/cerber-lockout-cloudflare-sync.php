@@ -51,19 +51,23 @@ add_action( 'plugins_loaded', 'cerber_cf_sync_init' );
 /**
  * Add a "Settings" link on the Plugins listing page.
  *
- * @param array $links Existing plugin action links.
+ * @param array  $links Existing plugin action links.
+ * @param string $file  The plugin file name.
  * @return array Modified links.
  */
-function cerber_cf_sync_plugin_action_links( $links ) {
-	$settings_link = sprintf(
-		'<a href="%s">%s</a>',
-		esc_url( admin_url( 'options-general.php?page=cerber-cf-sync' ) ),
-		esc_html__( 'Settings', 'cerber-lockout-cloudflare-sync' )
-	);
-	array_unshift( $links, $settings_link );
+function cerber_cf_sync_plugin_action_links( $links, $file ) {
+	if ( basename( $file ) === 'cerber-lockout-cloudflare-sync.php' ) {
+		$settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( admin_url( 'options-general.php?page=cerber-cf-sync' ) ),
+			esc_html__( 'Settings', 'cerber-lockout-cloudflare-sync' )
+		);
+		array_unshift( $links, $settings_link );
+	}
 	return $links;
 }
-add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'cerber_cf_sync_plugin_action_links' );
+add_filter( 'plugin_action_links', 'cerber_cf_sync_plugin_action_links', 10, 2 );
+
 
 /**
  * Check if WP Cerber is active during plugin activation.
