@@ -22,6 +22,9 @@ cerber-lockout-cloudflare-sync/
 ├── .gitignore                                     # Git ignore definitions
 ├── README.md                                      # Project Readme
 ├── CHANGELOG.md                                   # Keep a Changelog version history
+├── package.json                                   # NPM build scripts & dependencies
+├── bin/
+│   └── pack.js                                    # Dynamic ZIP packaging script
 ├── src/                                           # WordPress plugin source files
 │   ├── cerber-lockout-cloudflare-sync.php         # Main plugin bootstrapper
 │   ├── uninstall.php                              # Complete option/transient cleanup on deletion
@@ -32,6 +35,9 @@ cerber-lockout-cloudflare-sync/
 │       ├── class-notifier.php                     # Email notifications manager
 │       └── admin/                                 # Administrative settings and control center
 │           ├── class-admin-ui.php                 # Admin Settings UI & AJAX actions controller
+│           ├── css/                               # Admin assets stylesheets
+│           │   ├── admin-style.css                # Source admin panel stylesheet
+│           │   └── admin-style.min.css            # Minified production-ready stylesheet
 │           └── views/                             # Modular page templates for tabs
 │               ├── settings-page.php              # Tab navigation wrapper, script & style loader
 │               ├── tab-api.php                    # API credentials configurations (fields)
@@ -53,6 +59,30 @@ cerber-lockout-cloudflare-sync/
 3. Select the downloaded ZIP file and click **Install Now**.
 4. Activate the plugin.
 5. Go to **Settings > Cerber CF Sync** to configure your Cloudflare API settings.
+
+## Development & Building
+
+The plugin includes automated scripts to compile assets and build releases:
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Minify CSS**:
+   ```bash
+   npm run minify
+   ```
+
+3. **Package Plugin ZIP**:
+   ```bash
+   npm run pack
+   ```
+
+4. **Full Build (Minify + Pack)**:
+   ```bash
+   npm run build
+   ```
 
 ## License
 

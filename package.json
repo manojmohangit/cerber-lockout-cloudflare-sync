@@ -1,0 +1,17 @@
+{
+  "name": "cerber-lockout-cloudflare-sync",
+  "version": "1.0.0",
+  "description": "WordPress plugin to synchronize WP Cerber lockout events to Cloudflare Account IP lists.",
+  "main": "src/cerber-lockout-cloudflare-sync.php",
+  "scripts": {
+    "minify": "esbuild src/includes/admin/css/admin-style.css --minify --outfile=src/includes/admin/css/admin-style.min.css",
+    "pack": "node bin/pack.js",
+    "build": "npm run minify && npm run pack"
+  },
+  "devDependencies": {
+    "archiver": "^6.0.1",
+    "esbuild": "^0.20.0"
+  },
+  "author": "Manoj Mohan",
+  "license": "GPL-2.0"
+}

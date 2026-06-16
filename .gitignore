@@ -25,3 +25,6 @@ yarn-error.log*
 # WordPress / PHP local testing
 wp-config.php
 wp-content/uploads/
+
+# Node dependencies
+node_modules/
