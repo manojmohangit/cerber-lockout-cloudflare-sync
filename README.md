@@ -49,7 +49,7 @@ cerber-lockout-cloudflare-sync/
 │   ├── documentation.html                         # Setup & configuration guide
 │   └── security.html                              # Security details & data-flow architecture
 └── dist/                                          # Distribution/Release builds
-    └── cerber-lockout-cloudflare-sync-v1.0.0.zip  # Versioned installable WordPress plugin ZIP
+    └── cerber-lockout-cloudflare-sync-v1.1.0.zip  # Versioned installable WordPress plugin ZIP
 ```
 
 ## Installation

@@ -4,7 +4,7 @@ Tags: wp-cerber, cloudflare, security, sync, ip-list, firewall
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPL-2.0
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,12 @@ Your Account ID is displayed on the main Overview tab of any domain in your Clou
 The token must be scoped to **Account > Account Filter Lists > Edit**.
 
 == Changelog ==
+
+= 1.1.0 =
+* Feature: Added automated IP list purging logic based on age and capacity thresholds.
+* Improvement: Added a WAI-ARIA accessible tabbed layout for settings configuration.
+* Dev: Integrated NPM build tooling, esbuild asset minification, and packaging scripts.
+* Improvement: Revamped admin dashboard UI with dynamic progress indicators, toggle switches, and native dashicons.
 
 = 1.0.0 =
 * Initial release.

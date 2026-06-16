@@ -3,7 +3,7 @@
  * Plugin Name:       Cerber Lockout Cloudflare Sync
  * Plugin URI:        https://github.com/manojmohangit/cerber-lockout-cloudflare-sync/
  * Description:       Synchronizes IP lockout events triggered by WP Cerber Security to a specified Cloudflare Account IP List for edge-level block mitigation.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Manoj Mohan
  * Author URI:        https://manojmohan.dev
  * License:           GPL-2.0
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Plugin Constants.
-define( 'CERBER_CF_SYNC_VERSION', '1.0.0' );
+define( 'CERBER_CF_SYNC_VERSION', '1.1.0' );
 define( 'CERBER_CF_SYNC_FILE', __FILE__ );
 define( 'CERBER_CF_SYNC_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CERBER_CF_SYNC_URL', plugin_dir_url( __FILE__ ) );

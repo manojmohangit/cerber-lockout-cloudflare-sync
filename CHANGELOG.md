@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-16
+
+### Added
+- **IP Purging**: Automated IP list purging logic based on block age and list capacity thresholds.
+- **Tabbed Settings**: Modular settings routing to separate API credentials, alerts, purging, and diagnostic controls.
+- **Accessibility**: Improved settings tabs with proper WAI-ARIA tablist roles and keyboard arrow navigation.
+- **Build Automation**: Automated build system using esbuild for asset minification and custom Node scripts to package versioned releases.
+
 ## [1.0.0] - 2026-06-11
 
 ### Added
