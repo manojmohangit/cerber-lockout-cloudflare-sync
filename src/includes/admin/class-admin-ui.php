@@ -49,6 +49,7 @@ class Cerber_CF_Sync_Admin_UI {
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
 		add_action( 'admin_init', array( $this, 'register_plugin_settings' ) );
 		add_action( 'admin_notices', array( $this, 'capacity_warning_notice' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 
 		// Register AJAX actions.
 		add_action( 'wp_ajax_cf_sync_test_connection', array( $this, 'ajax_test_connection' ) );
@@ -68,6 +69,28 @@ class Cerber_CF_Sync_Admin_UI {
 			'manage_options',
 			'cerber-cf-sync',
 			array( $this, 'render_settings_page' )
+		);
+	}
+
+	/**
+	 * Enqueue admin stylesheets with minification and versioning.
+	 *
+	 * @param string $hook Current page hook.
+	 */
+	public function enqueue_admin_assets( $hook ) {
+		if ( 'settings_page_cerber-cf-sync' !== $hook ) {
+			return;
+		}
+
+		$suffix   = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+		$css_path = CERBER_CF_SYNC_PATH . 'includes/admin/css/admin-style' . $suffix . '.css';
+		$version  = CERBER_CF_SYNC_VERSION;
+
+		wp_enqueue_style(
+			'cerber-cf-sync-admin-style',
+			CERBER_CF_SYNC_URL . 'includes/admin/css/admin-style' . $suffix . '.css',
+			array(),
+			$version
 		);
 	}
 

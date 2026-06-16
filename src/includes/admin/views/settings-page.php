@@ -13,27 +13,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="wrap cerber-cf-sync-wrap">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
-	<h2 class="nav-tab-wrapper" style="margin-bottom: 20px;">
-		<a href="#tab-api" class="nav-tab nav-tab-active" data-tab="tab-api"><?php esc_html_e( 'API Credentials', 'cerber-lockout-cloudflare-sync' ); ?></a>
-		<a href="#tab-alerts" class="nav-tab" data-tab="tab-alerts"><?php esc_html_e( 'Alerts & Warnings', 'cerber-lockout-cloudflare-sync' ); ?></a>
-		<a href="#tab-purging" class="nav-tab" data-tab="tab-purging"><?php esc_html_e( 'Purging Configuration', 'cerber-lockout-cloudflare-sync' ); ?></a>
-		<a href="#tab-diagnostics" class="nav-tab" data-tab="tab-diagnostics"><?php esc_html_e( 'Diagnostics & Tools', 'cerber-lockout-cloudflare-sync' ); ?></a>
-	</h2>
+	<div class="nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Plugin Settings Tabs', 'cerber-lockout-cloudflare-sync' ); ?>">
+		<a href="#tab-api" id="tab-link-api" class="nav-tab nav-tab-active" data-tab="tab-api" role="tab" aria-selected="true" aria-controls="tab-api" tabindex="0"><?php esc_html_e( 'API Credentials', 'cerber-lockout-cloudflare-sync' ); ?></a>
+		<a href="#tab-alerts" id="tab-link-alerts" class="nav-tab" data-tab="tab-alerts" role="tab" aria-selected="false" aria-controls="tab-alerts" tabindex="-1"><?php esc_html_e( 'Alerts & Warnings', 'cerber-lockout-cloudflare-sync' ); ?></a>
+		<a href="#tab-purging" id="tab-link-purging" class="nav-tab" data-tab="tab-purging" role="tab" aria-selected="false" aria-controls="tab-purging" tabindex="-1"><?php esc_html_e( 'Purging Configuration', 'cerber-lockout-cloudflare-sync' ); ?></a>
+		<a href="#tab-diagnostics" id="tab-link-diagnostics" class="nav-tab" data-tab="tab-diagnostics" role="tab" aria-selected="false" aria-controls="tab-diagnostics" tabindex="-1"><?php esc_html_e( 'Diagnostics & Tools', 'cerber-lockout-cloudflare-sync' ); ?></a>
+	</div>
 
 	<div class="cerber-cf-sync-layout">
 		<!-- Settings Form tabs -->
 		<form method="post" action="options.php" id="cerber-cf-settings-form">
 			<?php settings_fields( 'cerber_cf_sync_group' ); ?>
 
-			<div id="tab-api" class="tab-content active">
+			<div id="tab-api" class="tab-content active" role="tabpanel" aria-labelledby="tab-link-api">
 				<?php include CERBER_CF_SYNC_PATH . 'includes/admin/views/tab-api.php'; ?>
 			</div>
 
-			<div id="tab-alerts" class="tab-content">
+			<div id="tab-alerts" class="tab-content" role="tabpanel" aria-labelledby="tab-link-alerts">
 				<?php include CERBER_CF_SYNC_PATH . 'includes/admin/views/tab-alerts.php'; ?>
 			</div>
 
-			<div id="tab-purging" class="tab-content">
+			<div id="tab-purging" class="tab-content" role="tabpanel" aria-labelledby="tab-link-purging">
 				<?php include CERBER_CF_SYNC_PATH . 'includes/admin/views/tab-purging.php'; ?>
 			</div>
 
@@ -43,130 +43,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</form>
 
 		<!-- Diagnostics tab (Outside the settings form) -->
-		<div id="tab-diagnostics" class="tab-content">
+		<div id="tab-diagnostics" class="tab-content" role="tabpanel" aria-labelledby="tab-link-diagnostics">
 			<?php include CERBER_CF_SYNC_PATH . 'includes/admin/views/tab-diagnostics.php'; ?>
 		</div>
 	</div>
 </div>
-
-<style>
-	.cerber-cf-sync-wrap {
-		max-width: 900px;
-		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-	}
-	.cerber-cf-sync-layout {
-		margin-top: 15px;
-	}
-	.cerber-cf-card {
-		background: #fff;
-		border: 1px solid hsl(210, 14%, 89%);
-		border-radius: 12px;
-		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-		padding: 24px 32px;
-		box-sizing: border-box;
-		margin-bottom: 20px;
-	}
-	.cerber-cf-card h2 {
-		margin-top: 0;
-		font-size: 20px;
-		font-weight: 600;
-		color: hsl(215, 25%, 27%);
-		border-bottom: 1px solid hsl(210, 14%, 93%);
-		padding-bottom: 12px;
-		margin-bottom: 20px;
-	}
-	.form-table th {
-		font-weight: 500;
-		color: hsl(215, 20%, 30%);
-		width: 220px;
-	}
-	.form-table td input[type="text"],
-	.form-table td input[type="password"],
-	.form-table td input[type="email"],
-	.form-table td input[type="number"],
-	.form-table td select {
-		border-radius: 6px;
-		border: 1px solid hsl(210, 14%, 80%);
-		padding: 6px 12px;
-		transition: border-color 0.2s ease, box-shadow 0.2s ease;
-	}
-	.form-table td input:focus,
-	.form-table td select:focus {
-		border-color: hsl(220, 90%, 56%);
-		box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
-		outline: none;
-	}
-	.diagnostic-actions {
-		margin-top: 10px;
-	}
-	.action-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 16px 0;
-		border-bottom: 1px solid hsl(210, 14%, 95%);
-	}
-	.action-row:last-child {
-		border-bottom: none;
-	}
-	.action-info h3 {
-		margin: 0 0 4px 0;
-		font-size: 15px;
-		font-weight: 500;
-		color: hsl(215, 25%, 27%);
-	}
-	.action-info p {
-		margin: 0;
-		font-size: 13px;
-		color: hsl(210, 10%, 45%);
-	}
-	.action-trigger {
-		min-width: 160px;
-		text-align: right;
-	}
-	.manual-block-form {
-		display: inline-flex;
-		align-items: center;
-		justify-content: flex-end;
-	}
-	.manual-block-form input {
-		border-radius: 6px;
-		border: 1px solid hsl(210, 14%, 80%);
-		padding: 5px 8px;
-	}
-	.output-log {
-		margin: 12px 0;
-		padding: 12px 16px;
-		border-radius: 8px;
-		font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-		font-size: 13px;
-		line-height: 1.5;
-	}
-	.output-log.success {
-		background-color: hsl(140, 60%, 96%);
-		border-left: 4px solid hsl(140, 50%, 40%);
-		color: hsl(140, 50%, 25%);
-	}
-	.output-log.error {
-		background-color: hsl(0, 75%, 97%);
-		border-left: 4px solid hsl(0, 75%, 50%);
-		color: hsl(0, 75%, 30%);
-	}
-	.hidden {
-		display: none;
-	}
-
-	/* Tabs display rules */
-	.tab-content {
-		display: none;
-	}
-	.tab-content.active {
-		display: block;
-	}
-	.submit-wrapper {
-		margin-top: 15px;
-	}
-</style>
 
 <script type="text/javascript">
 	jQuery(document).ready(function($) {
@@ -177,9 +58,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			e.preventDefault();
 			var targetTab = $(this).data('tab');
 
-			// Update active tab header class
-			$('.nav-tab-wrapper a').removeClass('nav-tab-active');
-			$(this).addClass('nav-tab-active');
+			// Update active tab header class and accessibility properties
+			$('.nav-tab-wrapper a')
+				.removeClass('nav-tab-active')
+				.attr('aria-selected', 'false')
+				.attr('tabindex', '-1');
+
+			$(this)
+				.addClass('nav-tab-active')
+				.attr('aria-selected', 'true')
+				.attr('tabindex', '0');
 
 			// Toggle tab content visibility
 			$('.tab-content').removeClass('active');
@@ -194,6 +82,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 			// Store active tab in localStorage
 			localStorage.setItem('cerber_cf_sync_active_tab', targetTab);
+		});
+
+		// Handle keyboard navigation between tabs (WAI-ARIA Pattern)
+		$('.nav-tab-wrapper').on('keydown', '[role="tab"]', function(e) {
+			var $tabs = $('.nav-tab-wrapper [role="tab"]');
+			var index = $tabs.index(this);
+			var newIndex;
+
+			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+				newIndex = (index + 1) % $tabs.length;
+			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+				newIndex = (index - 1 + $tabs.length) % $tabs.length;
+			} else if (e.key === 'Home') {
+				newIndex = 0;
+			} else if (e.key === 'End') {
+				newIndex = $tabs.length - 1;
+			} else {
+				return;
+			}
+
+			e.preventDefault();
+			var $newTab = $tabs.eq(newIndex);
+			$newTab.trigger('click').focus();
 		});
 
 		// Restore last active tab on page load

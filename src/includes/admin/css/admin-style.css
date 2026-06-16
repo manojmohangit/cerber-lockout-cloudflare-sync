@@ -1,0 +1,340 @@
+.cerber-cf-sync-wrap {
+	max-width: 900px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	margin-top: 24px;
+}
+
+.cerber-cf-sync-wrap h1 {
+	font-size: 28px;
+	font-weight: 700;
+	color: hsl(215, 25%, 15%);
+	margin-bottom: 24px;
+}
+
+/* Tabs Styling */
+.cerber-cf-sync-wrap .nav-tab-wrapper {
+	border-bottom: 0px;
+	padding-bottom: 0;
+	display: flex;
+	gap: 8px;
+}
+
+.cerber-cf-sync-wrap .nav-tab:last-of-type {
+	border-right: 0px;
+}
+
+.cerber-cf-sync-wrap .nav-tab {
+	border: none;
+	background: transparent;
+	color: hsl(215, 15%, 45%);
+	padding: 10px 16px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 8px 8px 0 0;
+	margin: 0;
+	position: relative;
+	transition: color 0.2s ease, background 0.2s ease;
+	cursor: pointer;
+}
+
+.cerber-cf-sync-wrap .nav-tab::after {
+	content: '';
+	position: absolute;
+	bottom: -2px;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	background: transparent;
+	transition: background 0.2s ease;
+}
+
+.cerber-cf-sync-wrap .nav-tab:hover {
+	color: hsl(243, 75%, 59%);
+	background: hsl(210, 14%, 96%);
+}
+
+.cerber-cf-sync-wrap .nav-tab-active,
+.cerber-cf-sync-wrap .nav-tab-active:focus,
+.cerber-cf-sync-wrap .nav-tab-active:hover {
+	border: none;
+	background: transparent;
+	color: hsl(243, 75%, 59%);
+}
+
+.cerber-cf-sync-wrap .nav-tab-active::after {
+	background: hsl(243, 75%, 59%);
+}
+
+.cerber-cf-card {
+	background: #fff;
+	border: 1px solid hsl(210, 14%, 90%);
+	border-radius: 0px 0px 12px 12px;
+	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+	padding: 28px 36px;
+	box-sizing: border-box;
+	margin-bottom: 24px;
+}
+
+.cerber-cf-card h2 {
+	margin-top: 0;
+	font-size: 20px;
+	font-weight: 700;
+	color: hsl(215, 25%, 20%);
+	border-bottom: 1px solid hsl(210, 14%, 93%);
+	padding-bottom: 14px;
+	margin-bottom: 24px;
+}
+
+.form-table th {
+	font-weight: 600;
+	color: hsl(215, 20%, 30%);
+	width: 240px;
+	padding: 16px 10px 16px 0;
+}
+
+.form-table td {
+	padding: 12px 10px;
+}
+
+/* Input elements styling */
+.form-table td input[type="text"],
+.form-table td input[type="password"],
+.form-table td input[type="email"],
+.form-table td input[type="number"],
+.form-table td select {
+	border-radius: 8px;
+	border: 1px solid hsl(210, 14%, 80%);
+	padding: 8px 14px;
+	width: 100%;
+	max-width: 400px;
+	font-size: 14px;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-table td input:focus,
+.form-table td select:focus {
+	border-color: hsl(243, 75%, 59%);
+	box-shadow: 0 0 0 3px hsla(243, 75%, 59%, 0.15);
+	outline: none;
+}
+
+/* Toggles / Switches for checkboxes */
+.cerber-cf-sync-wrap input[type="checkbox"] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 46px;
+	height: 24px;
+	background-color: hsl(210, 14%, 85%);
+	border-radius: 12px;
+	position: relative;
+	cursor: pointer;
+	outline: none;
+	transition: background-color 0.2s ease;
+	border: none !important;
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 8px;
+}
+
+.cerber-cf-sync-wrap input[type="checkbox"]:checked {
+	background-color: hsl(243, 75%, 59%);
+}
+
+.cerber-cf-sync-wrap input[type="checkbox"]::before {
+	content: '';
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	background-color: white;
+	top: 3px;
+	left: 3px;
+	transition: transform 0.2s ease;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.cerber-cf-sync-wrap input[type="checkbox"]:checked::before {
+	transform: translateX(22px);
+}
+
+.cerber-cf-sync-wrap input[type="checkbox"]:focus {
+	box-shadow: 0 0 0 3px hsla(243, 75%, 59%, 0.2);
+}
+
+/* Description styling */
+.form-table td .description {
+	margin-top: 8px;
+	color: hsl(210, 10%, 48%);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+/* Dynamic Action rows */
+.diagnostic-actions {
+	margin-top: 10px;
+}
+
+.action-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 0;
+	border-bottom: 1px solid hsl(210, 14%, 93%);
+}
+
+.action-row:last-child {
+	border-bottom: none;
+}
+
+.action-info h3 {
+	margin: 0 0 6px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: hsl(215, 25%, 20%);
+}
+
+.action-info p {
+	margin: 0;
+	font-size: 13.5px;
+	color: hsl(210, 10%, 48%);
+	line-height: 1.4;
+}
+
+.action-trigger {
+	min-width: 180px;
+	text-align: right;
+}
+
+/* Button overrides */
+.cerber-cf-sync-wrap .button-secondary {
+	border: 1px solid hsl(210, 14%, 80%) !important;
+	background: #ffffff !important;
+	color: hsl(215, 20%, 30%) !important;
+	font-weight: 600 !important;
+	border-radius: 6px !important;
+	padding: 4px 16px !important;
+	transition: all 0.2s ease !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.cerber-cf-sync-wrap .button-secondary:hover {
+	border-color: hsl(243, 75%, 59%) !important;
+	color: hsl(243, 75%, 59%) !important;
+	background: hsla(243, 75%, 59%, 0.02) !important;
+}
+
+.cerber-cf-sync-wrap .button-primary {
+	background: hsl(243, 75%, 59%) !important;
+	border: none !important;
+	font-weight: 600 !important;
+	border-radius: 8px !important;
+	padding: 8px 20px !important;
+	transition: all 0.2s ease !important;
+	box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1) !important;
+}
+
+.cerber-cf-sync-wrap .button-primary:hover {
+	background: hsl(243, 75%, 54%) !important;
+	transform: translateY(-1px);
+	box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.25), 0 3px 6px -1px rgba(79, 70, 229, 0.15) !important;
+}
+
+/* Logs / Outputs */
+.output-log {
+	margin: 16px 0;
+	padding: 14px 20px;
+	border-radius: 8px;
+	font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+	font-size: 13px;
+	line-height: 1.6;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.output-log.success {
+	background-color: hsl(140, 60%, 97%);
+	border-left: 4px solid hsl(140, 50%, 45%);
+	color: hsl(140, 60%, 20%);
+}
+
+.output-log.error {
+	background-color: hsl(0, 75%, 98%);
+	border-left: 4px solid hsl(0, 75%, 50%);
+	color: hsl(0, 75%, 25%);
+}
+
+.hidden {
+	display: none;
+}
+
+/* Tabs display rules */
+.tab-content {
+	display: none;
+}
+
+.tab-content.active {
+	display: block;
+}
+
+.submit-wrapper {
+	margin-top: 15px;
+}
+
+/* Card header icons styling */
+.cerber-cf-card h2 .dashicons {
+	margin-right: 8px;
+	color: hsl(243, 75%, 59%);
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	vertical-align: middle;
+}
+
+/* Capacity visual components styling */
+.cerber-cf-sync-layout .capacity-bar-wrapper {
+	margin-top: 10px;
+	width: 100%;
+	max-width: 320px;
+	background: hsl(210, 14%, 93%);
+	height: 8px;
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.cerber-cf-sync-layout .capacity-bar-progress {
+	height: 100%;
+	border-radius: 4px;
+	transition: width 0.5s ease;
+	width: var(--capacity-percent, 0%);
+	background-color: var(--capacity-color, hsl(140, 50%, 40%));
+}
+
+/* Diagnostics tab specific style cleanups */
+.cerber-cf-sync-layout #manual-ip-input {
+	max-width: 180px;
+	margin-right: 8px;
+}
+
+.cerber-cf-sync-layout .manual-block-form {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.cerber-cf-sync-layout #btn-clear-cache {
+	color: hsl(0, 75%, 50%);
+}
+
+.cerber-cf-sync-layout #btn-clear-cache:hover {
+	color: hsl(0, 75%, 45%);
+}
+
+.cerber-cf-sync-layout .capacity-status-text .error-msg {
+	color: hsl(0, 75%, 50%);
+	font-weight: 500;
+}
+
+.cerber-cf-sync-layout .capacity-count {
+	color: var(--capacity-text-color, inherit);
+}

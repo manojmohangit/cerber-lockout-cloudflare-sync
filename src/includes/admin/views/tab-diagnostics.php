@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div class="cerber-cf-card diagnostic-card">
-	<h2><?php esc_html_e( 'Diagnostics & Control Center', 'cerber-lockout-cloudflare-sync' ); ?></h2>
+	<h2><span class="dashicons dashicons-performance"></span><?php esc_html_e( 'Diagnostics & Control Center', 'cerber-lockout-cloudflare-sync' ); ?></h2>
 	<p class="description"><?php esc_html_e( 'Use these tools to manually trigger events, monitor IP list capacity, and manage caching states.', 'cerber-lockout-cloudflare-sync' ); ?></p>
 	
 	<div class="diagnostic-actions">
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 			<div class="action-trigger">
 				<div class="manual-block-form">
-					<input type="text" id="manual-ip-input" placeholder="e.g. 192.0.2.1" class="regular-text" style="max-width: 180px; margin-right: 8px;" />
+					<input type="text" id="manual-ip-input" placeholder="e.g. 192.0.2.1" class="regular-text" />
 					<button type="button" id="btn-manual-block" class="button button-secondary"><?php esc_html_e( 'Block IP', 'cerber-lockout-cloudflare-sync' ); ?></button>
 				</div>
 			</div>
@@ -49,7 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<p><?php esc_html_e( 'Flushes transient caching to force complete API queries on subsequent lockouts.', 'cerber-lockout-cloudflare-sync' ); ?></p>
 			</div>
 			<div class="action-trigger">
-				<button type="button" id="btn-clear-cache" class="button button-link-delete" style="color: hsl(0, 75%, 50%);"><?php esc_html_e( 'Flush Cache', 'cerber-lockout-cloudflare-sync' ); ?></button>
+				<button type="button" id="btn-clear-cache" class="button button-link-delete"><?php esc_html_e( 'Flush Cache', 'cerber-lockout-cloudflare-sync' ); ?></button>
 			</div>
 		</div>
 		<div id="clear-cache-output" class="output-log hidden"></div>
@@ -58,10 +58,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="action-row">
 			<div class="action-info">
 				<h3><?php esc_html_e( 'Cloudflare IP List Capacity', 'cerber-lockout-cloudflare-sync' ); ?></h3>
-				<p>
+				<div class="capacity-status-text">
 					<?php
 					if ( is_wp_error( $list_count ) ) {
-						echo '<span style="color: hsl(0, 75%, 50%); font-weight: 500;">' . esc_html__( 'Unable to retrieve capacity data. Verify API credentials.', 'cerber-lockout-cloudflare-sync' ) . '</span>';
+						echo '<span class="error-msg">' . esc_html__( 'Unable to retrieve capacity data. Verify API credentials.', 'cerber-lockout-cloudflare-sync' ) . '</span>';
 					} else {
 						$settings  = get_option( 'cerber_cf_sync_settings', array() );
 						$threshold = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
@@ -75,14 +75,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 						}
 
 						printf(
-							__( 'Current size: <strong style="color: %s;">%s</strong> / 10,000 items (%s%% capacity)', 'cerber-lockout-cloudflare-sync' ),
+							__( 'Current size: <strong class="capacity-count" style="--capacity-text-color: %s;">%s</strong> / 10,000 items (%s%% capacity)', 'cerber-lockout-cloudflare-sync' ),
 							esc_attr( $color ),
 							esc_html( number_format_i18n( $list_count ) ),
 							esc_html( $percent )
 						);
+						?>
+						<div class="capacity-bar-wrapper">
+							<div class="capacity-bar-progress" style="--capacity-percent: <?php echo esc_attr( $percent ); ?>%; --capacity-color: <?php echo esc_attr( $color ); ?>;"></div>
+						</div>
+						<?php
 					}
 					?>
-				</p>
+				</div>
 			</div>
 			<div class="action-trigger">
 				<button type="button" id="btn-refresh-count" class="button button-secondary"><?php esc_html_e( 'Refresh Capacity', 'cerber-lockout-cloudflare-sync' ); ?></button>
