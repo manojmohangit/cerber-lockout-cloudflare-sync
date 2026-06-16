@@ -55,6 +55,7 @@ class Cerber_CF_Sync_Admin_UI {
 		add_action( 'wp_ajax_cf_sync_manual_ip', array( $this, 'ajax_manual_ip' ) );
 		add_action( 'wp_ajax_cf_sync_clear_cache', array( $this, 'ajax_clear_cache' ) );
 		add_action( 'wp_ajax_cf_sync_refresh_count', array( $this, 'ajax_refresh_count' ) );
+		add_action( 'wp_ajax_cf_sync_run_purge', array( $this, 'ajax_run_purge' ) );
 	}
 
 	/**
@@ -68,16 +69,10 @@ class Cerber_CF_Sync_Admin_UI {
 			'cerber-cf-sync',
 			array( $this, 'render_settings_page' )
 		);
-
-		// Enqueue custom styling and scripts only on this specific settings page.
-		if ( $this->page_hook ) {
-			add_action( "admin_print_styles-{$this->page_hook}", array( $this, 'print_custom_styles' ) );
-			add_action( "admin_footer-{$this->page_hook}", array( $this, 'print_custom_scripts' ) );
-		}
 	}
 
 	/**
-	 * Register settings group, section, and fields.
+	 * Register settings group, sections, and fields.
 	 */
 	public function register_plugin_settings() {
 		register_setting(
@@ -90,59 +85,116 @@ class Cerber_CF_Sync_Admin_UI {
 			)
 		);
 
+		// 1. API Credentials Section
 		add_settings_section(
-			'cerber_cf_sync_section_credentials',
-			__( 'Cloudflare Configuration Settings', 'cerber-lockout-cloudflare-sync' ),
+			'cerber_cf_sync_section_api',
+			__( 'Cloudflare API Settings', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_section_description' ),
-			'cerber-cf-sync'
+			'cerber-cf-sync-api'
 		);
 
 		add_settings_field(
 			'account_id',
 			__( 'Cloudflare Account ID', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_account_id_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-api',
+			'cerber_cf_sync_section_api'
 		);
 
 		add_settings_field(
 			'list_id',
 			__( 'Cloudflare List ID', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_list_id_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-api',
+			'cerber_cf_sync_section_api'
 		);
 
 		add_settings_field(
 			'api_token',
 			__( 'Cloudflare API Token', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_api_token_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-api',
+			'cerber_cf_sync_section_api'
+		);
+
+		// 2. Alerts & Notifications Section
+		add_settings_section(
+			'cerber_cf_sync_section_alerts',
+			__( 'Alerts & Notifications Settings', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_section_description' ),
+			'cerber-cf-sync-alerts'
 		);
 
 		add_settings_field(
 			'email',
 			__( 'Notification Email', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_email_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-alerts',
+			'cerber_cf_sync_section_alerts'
 		);
 
 		add_settings_field(
 			'enable_success_emails',
 			__( 'Enable Success Notifications', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_enable_success_emails_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-alerts',
+			'cerber_cf_sync_section_alerts'
 		);
 
 		add_settings_field(
 			'warning_threshold',
 			__( 'Capacity Warning Threshold', 'cerber-lockout-cloudflare-sync' ),
 			array( $this, 'render_warning_threshold_field' ),
-			'cerber-cf-sync',
-			'cerber_cf_sync_section_credentials'
+			'cerber-cf-sync-alerts',
+			'cerber_cf_sync_section_alerts'
+		);
+
+		// 3. Purging Configuration Section
+		add_settings_section(
+			'cerber_cf_sync_section_purging',
+			__( 'Auto-Purging Settings', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_section_description' ),
+			'cerber-cf-sync-purging'
+		);
+
+		add_settings_field(
+			'enable_age_purging',
+			__( 'Enable Age-Based Purging', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_enable_age_purging_field' ),
+			'cerber-cf-sync-purging',
+			'cerber_cf_sync_section_purging'
+		);
+
+		add_settings_field(
+			'expiration_days',
+			__( 'IP Expiration Period (Days)', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_expiration_days_field' ),
+			'cerber-cf-sync-purging',
+			'cerber_cf_sync_section_purging'
+		);
+
+		add_settings_field(
+			'enable_capacity_purging',
+			__( 'Enable Capacity-Based Purging', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_enable_capacity_purging_field' ),
+			'cerber-cf-sync-purging',
+			'cerber_cf_sync_section_purging'
+		);
+
+		add_settings_field(
+			'max_list_size',
+			__( 'Maximum IP List Size', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_max_list_size_field' ),
+			'cerber-cf-sync-purging',
+			'cerber_cf_sync_section_purging'
+		);
+
+		add_settings_field(
+			'purge_quantity',
+			__( 'Purge Quantity', 'cerber-lockout-cloudflare-sync' ),
+			array( $this, 'render_purge_quantity_field' ),
+			'cerber-cf-sync-purging',
+			'cerber_cf_sync_section_purging'
 		);
 	}
 
@@ -180,6 +232,29 @@ class Cerber_CF_Sync_Admin_UI {
 			$sanitized['warning_threshold'] = 9000;
 		}
 
+		if ( isset( $input['expiration_days'] ) ) {
+			$sanitized['expiration_days'] = intval( $input['expiration_days'] );
+		} else {
+			$sanitized['expiration_days'] = 30;
+		}
+
+		if ( isset( $input['max_list_size'] ) ) {
+			$val = intval( $input['max_list_size'] );
+			$sanitized['max_list_size'] = ( $val >= 1000 && $val <= 10000 ) ? $val : 9500;
+		} else {
+			$sanitized['max_list_size'] = 9500;
+		}
+
+		if ( isset( $input['purge_quantity'] ) ) {
+			$val = intval( $input['purge_quantity'] );
+			$sanitized['purge_quantity'] = in_array( $val, array( 100, 200, 500, 1000 ) ) ? $val : 500;
+		} else {
+			$sanitized['purge_quantity'] = 500;
+		}
+
+		$sanitized['enable_age_purging']      = ! empty( $input['enable_age_purging'] ) ? '1' : '0';
+		$sanitized['enable_capacity_purging'] = ! empty( $input['enable_capacity_purging'] ) ? '1' : '0';
+
 		return $sanitized;
 	}
 
@@ -187,7 +262,7 @@ class Cerber_CF_Sync_Admin_UI {
 	 * Render Section Header.
 	 */
 	public function render_section_description() {
-		echo '<p class="description">' . esc_html__( 'Configure the credentials required to sync IP address blocks directly to your Cloudflare Account IP list.', 'cerber-lockout-cloudflare-sync' ) . '</p>';
+		// No description text inside tab headers to keep tab views clean.
 	}
 
 	/**
@@ -197,7 +272,6 @@ class Cerber_CF_Sync_Admin_UI {
 		$settings = get_option( 'cerber_cf_sync_settings', array() );
 		$val      = isset( $settings['account_id'] ) ? $settings['account_id'] : '';
 		
-		// Fallback check
 		$placeholder = '';
 		if ( empty( $val ) && defined( 'CLOUDFLARE_ACCOUNT_ID' ) ) {
 			$placeholder = __( 'Defined by constant', 'cerber-lockout-cloudflare-sync' );
@@ -309,6 +383,96 @@ class Cerber_CF_Sync_Admin_UI {
 	}
 
 	/**
+	 * Render Enable Age-Based Purging checkbox field.
+	 */
+	public function render_enable_age_purging_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$checked  = ! empty( $settings['enable_age_purging'] ) ? '1' : '0';
+
+		echo '<label>';
+		echo '<input type="checkbox" name="cerber_cf_sync_settings[enable_age_purging]" value="1" ' . checked( '1', $checked, false ) . ' />';
+		echo ' ' . esc_html__( 'Enable daily automatic removal of expired IP addresses based on the expiration period below.', 'cerber-lockout-cloudflare-sync' );
+		echo '</label>';
+	}
+
+	/**
+	 * Render Enable Capacity-Based Purging checkbox field.
+	 */
+	public function render_enable_capacity_purging_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$checked  = ! empty( $settings['enable_capacity_purging'] ) ? '1' : '0';
+
+		echo '<label>';
+		echo '<input type="checkbox" name="cerber_cf_sync_settings[enable_capacity_purging]" value="1" ' . checked( '1', $checked, false ) . ' />';
+		echo ' ' . esc_html__( 'Enable background capacity-based purging when the list approaches the maximum size limit.', 'cerber-lockout-cloudflare-sync' );
+		echo '</label>';
+	}
+
+	/**
+	 * Render Expiration Days field.
+	 */
+	public function render_expiration_days_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$val      = isset( $settings['expiration_days'] ) ? (int) $settings['expiration_days'] : 30;
+
+		$options = array(
+			0  => __( 'Never (Disable Purging)', 'cerber-lockout-cloudflare-sync' ),
+			1  => __( '1 Day', 'cerber-lockout-cloudflare-sync' ),
+			3  => __( '3 Days', 'cerber-lockout-cloudflare-sync' ),
+			7  => __( '7 Days', 'cerber-lockout-cloudflare-sync' ),
+			14 => __( '14 Days', 'cerber-lockout-cloudflare-sync' ),
+			30 => __( '30 Days', 'cerber-lockout-cloudflare-sync' ),
+			60 => __( '60 Days', 'cerber-lockout-cloudflare-sync' ),
+			90 => __( '90 Days', 'cerber-lockout-cloudflare-sync' ),
+		);
+
+		echo '<select name="cerber_cf_sync_settings[expiration_days]">';
+		foreach ( $options as $days => $label ) {
+			printf(
+				'<option value="%d" %s>%s</option>',
+				intval( $days ),
+				selected( $val, $days, false ),
+				esc_html( $label )
+			);
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( 'Automatically delete IP blocks older than the selected period during daily cron job runs.', 'cerber-lockout-cloudflare-sync' ) . '</p>';
+	}
+
+	/**
+	 * Render Max List Size field.
+	 */
+	public function render_max_list_size_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$val      = isset( $settings['max_list_size'] ) ? (int) $settings['max_list_size'] : 9500;
+
+		echo '<input type="number" class="small-text" name="cerber_cf_sync_settings[max_list_size]" value="' . esc_attr( $val ) . '" min="1000" max="10000" step="100" />';
+		echo '<p class="description">' . esc_html__( 'Automatically trigger capacity purging if the Cloudflare list size exceeds this limit (Maximum allowed is 10,000).', 'cerber-lockout-cloudflare-sync' ) . '</p>';
+	}
+
+	/**
+	 * Render Purge Quantity field.
+	 */
+	public function render_purge_quantity_field() {
+		$settings = get_option( 'cerber_cf_sync_settings', array() );
+		$val      = isset( $settings['purge_quantity'] ) ? (int) $settings['purge_quantity'] : 500;
+
+		$options = array( 100, 200, 500, 1000 );
+
+		echo '<select name="cerber_cf_sync_settings[purge_quantity]">';
+		foreach ( $options as $qty ) {
+			printf(
+				'<option value="%d" %s>%d</option>',
+				intval( $qty ),
+				selected( $val, $qty, false ),
+				intval( $qty )
+			);
+		}
+		echo '</select>';
+		echo '<p class="description">' . esc_html__( 'Number of oldest IPs to remove when capacity purging is triggered.', 'cerber-lockout-cloudflare-sync' ) . '</p>';
+	}
+
+	/**
 	 * Show an admin notice if the Cloudflare List is nearing capacity.
 	 */
 	public function capacity_warning_notice() {
@@ -337,7 +501,7 @@ class Cerber_CF_Sync_Admin_UI {
 				esc_attr( $class ),
 				esc_html__( 'Cerber Lockout Cloudflare Sync Capacity Alert:', 'cerber-lockout-cloudflare-sync' ),
 				sprintf(
-					esc_html__( 'The Cloudflare Account IP List is nearing capacity. Current size: %s / 10,000 items. Please log in to your Cloudflare dashboard and prune old items to ensure uninterrupted lockout synchronization.', 'cerber-lockout-cloudflare-sync' ),
+					esc_html__( 'The Cloudflare Account IP List is nearing capacity. Current size: %s / 10,000 items. Please log in to your Cloudflare dashboard and purge old items to ensure uninterrupted lockout synchronization.', 'cerber-lockout-cloudflare-sync' ),
 					esc_html( number_format_i18n( $list_count ) )
 				)
 			);
@@ -361,367 +525,19 @@ class Cerber_CF_Sync_Admin_UI {
 				set_transient( 'cerber_cf_sync_list_count', $list_count, HOUR_IN_SECONDS );
 			}
 		}
-		?>
-		<div class="wrap cerber-cf-sync-wrap">
-			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
-			<div class="cerber-cf-sync-layout">
-				<!-- Settings Card -->
-				<div class="cerber-cf-card config-card">
-					<form method="post" action="options.php">
-						<?php
-						settings_fields( 'cerber_cf_sync_group' );
-						do_settings_sections( 'cerber-cf-sync' );
-						submit_button( __( 'Save Integration Settings', 'cerber-lockout-cloudflare-sync' ) );
-						?>
-					</form>
-				</div>
-
-				<!-- Diagnostic Control Panel -->
-				<div class="cerber-cf-card diagnostic-card">
-					<h2><?php esc_html_e( 'Diagnostics & Control Center', 'cerber-lockout-cloudflare-sync' ); ?></h2>
-					<p class="description"><?php esc_html_e( 'Use these tools to manually trigger events and manage local caching states.', 'cerber-lockout-cloudflare-sync' ); ?></p>
-					
-					<div class="diagnostic-actions">
-						<!-- Test Connection -->
-						<div class="action-row">
-							<div class="action-info">
-								<h3><?php esc_html_e( 'API Connection Check', 'cerber-lockout-cloudflare-sync' ); ?></h3>
-								<p><?php esc_html_e( 'Tests API authorization and validates Account/List parameters.', 'cerber-lockout-cloudflare-sync' ); ?></p>
-							</div>
-							<div class="action-trigger">
-								<button type="button" id="btn-test-connection" class="button button-secondary"><?php esc_html_e( 'Test Connection', 'cerber-lockout-cloudflare-sync' ); ?></button>
-							</div>
-						</div>
-						<div id="test-connection-output" class="output-log hidden"></div>
-
-						<!-- Manual Block -->
-						<div class="action-row">
-							<div class="action-info">
-								<h3><?php esc_html_e( 'Manual IP Synchronization', 'cerber-lockout-cloudflare-sync' ); ?></h3>
-								<p><?php esc_html_e( 'Manually blocklist an IP in the Cloudflare List and update the cache.', 'cerber-lockout-cloudflare-sync' ); ?></p>
-							</div>
-							<div class="action-trigger">
-								<div class="manual-block-form">
-									<input type="text" id="manual-ip-input" placeholder="e.g. 192.0.2.1" class="regular-text" style="max-width: 180px; margin-right: 8px;" />
-									<button type="button" id="btn-manual-block" class="button button-secondary"><?php esc_html_e( 'Block IP', 'cerber-lockout-cloudflare-sync' ); ?></button>
-								</div>
-							</div>
-						</div>
-						<div id="manual-block-output" class="output-log hidden"></div>
-
-						<!-- Clear Transient Cache -->
-						<div class="action-row">
-							<div class="action-info">
-								<h3><?php esc_html_e( 'Clear Local Lockout Cache', 'cerber-lockout-cloudflare-sync' ); ?></h3>
-								<p><?php esc_html_e( 'Flushes transient caching to force complete API queries on subsequent lockouts.', 'cerber-lockout-cloudflare-sync' ); ?></p>
-							</div>
-							<div class="action-trigger">
-								<button type="button" id="btn-clear-cache" class="button button-link-delete" style="color: hsl(0, 75%, 50%);"><?php esc_html_e( 'Flush Cache', 'cerber-lockout-cloudflare-sync' ); ?></button>
-							</div>
-						</div>
-						<div id="clear-cache-output" class="output-log hidden"></div>
-
-						<!-- IP List Capacity Status -->
-						<div class="action-row">
-							<div class="action-info">
-								<h3><?php esc_html_e( 'Cloudflare IP List Capacity', 'cerber-lockout-cloudflare-sync' ); ?></h3>
-								<p>
-									<?php
-									if ( is_wp_error( $list_count ) ) {
-										echo '<span style="color: hsl(0, 75%, 50%); font-weight: 500;">' . esc_html__( 'Unable to retrieve capacity data. Verify API credentials.', 'cerber-lockout-cloudflare-sync' ) . '</span>';
-									} else {
-										$settings  = get_option( 'cerber_cf_sync_settings', array() );
-										$threshold = isset( $settings['warning_threshold'] ) ? (int) $settings['warning_threshold'] : 9000;
-										$percent   = round( ( $list_count / 10000 ) * 100, 1 );
-
-										$color = 'hsl(140, 50%, 40%)';
-										if ( $list_count >= 10000 ) {
-											$color = 'hsl(0, 75%, 50%)';
-										} elseif ( $list_count >= $threshold ) {
-											$color = 'hsl(35, 90%, 50%)';
-										}
-
-										printf(
-											__( 'Current size: <strong style="color: %s;">%s</strong> / 10,000 items (%s%% capacity)', 'cerber-lockout-cloudflare-sync' ),
-											esc_attr( $color ),
-											esc_html( number_format_i18n( $list_count ) ),
-											esc_html( $percent )
-										);
-									}
-									?>
-								</p>
-							</div>
-							<div class="action-trigger">
-								<button type="button" id="btn-refresh-count" class="button button-secondary"><?php esc_html_e( 'Refresh Capacity', 'cerber-lockout-cloudflare-sync' ); ?></button>
-							</div>
-						</div>
-						<div id="refresh-count-output" class="output-log hidden"></div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Print Custom Styles on settings page wrapper.
-	 */
-	public function print_custom_styles() {
-		?>
-		<style>
-			.cerber-cf-sync-wrap {
-				max-width: 900px;
-				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-			}
-			.cerber-cf-sync-layout {
-				display: grid;
-				grid-template-columns: 1fr;
-				gap: 24px;
-				margin-top: 20px;
-			}
-			.cerber-cf-card {
-				background: #fff;
-				border: 1px solid hsl(210, 14%, 89%);
-				border-radius: 12px;
-				box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-				padding: 24px 32px;
-				box-sizing: border-box;
-			}
-			.cerber-cf-card h2 {
-				margin-top: 0;
-				font-size: 20px;
-				font-weight: 600;
-				color: hsl(215, 25%, 27%);
-				border-bottom: 1px solid hsl(210, 14%, 93%);
-				padding-bottom: 12px;
-			}
-			.form-table th {
-				font-weight: 500;
-				color: hsl(215, 20%, 30%);
-				width: 220px;
-			}
-			.form-table td input[type="text"],
-			.form-table td input[type="password"],
-			.form-table td input[type="email"] {
-				border-radius: 6px;
-				border: 1px solid hsl(210, 14%, 80%);
-				padding: 6px 12px;
-				transition: border-color 0.2s ease, box-shadow 0.2s ease;
-			}
-			.form-table td input:focus {
-				border-color: hsl(220, 90%, 56%);
-				box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
-				outline: none;
-			}
-			.diagnostic-actions {
-				margin-top: 20px;
-			}
-			.action-row {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				padding: 16px 0;
-				border-bottom: 1px solid hsl(210, 14%, 95%);
-			}
-			.action-row:last-child {
-				border-bottom: none;
-			}
-			.action-info h3 {
-				margin: 0 0 4px 0;
-				font-size: 15px;
-				font-weight: 500;
-				color: hsl(215, 25%, 27%);
-			}
-			.action-info p {
-				margin: 0;
-				font-size: 13px;
-				color: hsl(210, 10%, 45%);
-			}
-			.action-trigger {
-				min-width: 160px;
-				text-align: right;
-			}
-			.manual-block-form {
-				display: inline-flex;
-				align-items: center;
-				justify-content: flex-end;
-			}
-			.manual-block-form input {
-				border-radius: 6px;
-				border: 1px solid hsl(210, 14%, 80%);
-				padding: 5px 8px;
-			}
-			.output-log {
-				margin: 12px 0;
-				padding: 12px 16px;
-				border-radius: 8px;
-				font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-				font-size: 13px;
-				line-height: 1.5;
-			}
-			.output-log.success {
-				background-color: hsl(140, 60%, 96%);
-				border-left: 4px solid hsl(140, 50%, 40%);
-				color: hsl(140, 50%, 25%);
-			}
-			.output-log.error {
-				background-color: hsl(0, 75%, 97%);
-				border-left: 4px solid hsl(0, 75%, 50%);
-				color: hsl(0, 75%, 30%);
-			}
-			.hidden {
-				display: none;
-			}
-		</style>
-		<?php
-	}
-
-	/**
-	 * Print Interactive Script assets in footer.
-	 */
-	public function print_custom_scripts() {
-		// Output JS for Ajax controls.
-		?>
-		<script type="text/javascript">
-			jQuery(document).ready(function($) {
-				var ajaxNonce = '<?php echo esc_js( wp_create_nonce( "cerber_cf_sync_ajax_nonce" ) ); ?>';
-
-				// Helper to update log views
-				function showLog(container, message, type) {
-					container.removeClass('hidden success error').addClass(type).html(message).show();
-				}
-
-				// Connection Test AJAX
-				$('#btn-test-connection').on('click', function(e) {
-					e.preventDefault();
-					var $btn = $(this);
-					var $log = $('#test-connection-output');
-					
-					$btn.prop('disabled', true).text('<?php echo esc_js( __( 'Testing...', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					$log.addClass('hidden');
-
-					$.post(ajaxurl, {
-						action: 'cf_sync_test_connection',
-						nonce: ajaxNonce
-					}, function(response) {
-						if (response.success) {
-							showLog($log, response.data.message, 'success');
-						} else {
-							showLog($log, response.data.message, 'error');
-						}
-					}).fail(function() {
-						showLog($log, '<?php echo esc_js( __( 'Server communication failed. Please check network.', 'cerber-lockout-cloudflare-sync' ) ); ?>', 'error');
-					}).always(function() {
-						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Test Connection', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					});
-				});
-
-				// Manual Block IP AJAX
-				$('#btn-manual-block').on('click', function(e) {
-					e.preventDefault();
-					var $btn = $(this);
-					var $input = $('#manual-ip-input');
-					var ip = $input.val().trim();
-					var $log = $('#manual-block-output');
-
-					if (!ip) {
-						alert('<?php echo esc_js( __( 'Please enter a valid IP address.', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-						return;
-					}
-
-					$btn.prop('disabled', true).text('<?php echo esc_js( __( 'Syncing...', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					$log.addClass('hidden');
-
-					$.post(ajaxurl, {
-						action: 'cf_sync_manual_ip',
-						ip: ip,
-						nonce: ajaxNonce
-					}, function(response) {
-						if (response.success) {
-							showLog($log, response.data.message, 'success');
-							$input.val('');
-						} else {
-							showLog($log, response.data.message, 'error');
-						}
-					}).fail(function() {
-						showLog($log, '<?php echo esc_js( __( 'Communication failed.', 'cerber-lockout-cloudflare-sync' ) ); ?>', 'error');
-					}).always(function() {
-						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Block IP', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					});
-				});
-
-				// Flush Cache AJAX
-				$('#btn-clear-cache').on('click', function(e) {
-					e.preventDefault();
-					var $btn = $(this);
-					var $log = $('#clear-cache-output');
-
-					if (!confirm('<?php echo esc_js( __( 'Are you sure you want to flush all synchronized IP cache transients? This will trigger fresh lookup requests on repeating events.', 'cerber-lockout-cloudflare-sync' ) ); ?>')) {
-						return;
-					}
-
-					$btn.prop('disabled', true).text('<?php echo esc_js( __( 'Flushing...', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					$log.addClass('hidden');
-
-					$.post(ajaxurl, {
-						action: 'cf_sync_clear_cache',
-						nonce: ajaxNonce
-					}, function(response) {
-						if (response.success) {
-							showLog($log, response.data.message, 'success');
-						} else {
-							showLog($log, response.data.message, 'error');
-						}
-					}).fail(function() {
-						showLog($log, '<?php echo esc_js( __( 'Failure flushing transients.', 'cerber-lockout-cloudflare-sync' ) ); ?>', 'error');
-					}).always(function() {
-						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Flush Cache', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					});
-				});
-
-				// Refresh Capacity AJAX
-				$('#btn-refresh-count').on('click', function(e) {
-					e.preventDefault();
-					var $btn = $(this);
-					var $log = $('#refresh-count-output');
-					
-					$btn.prop('disabled', true).text('<?php echo esc_js( __( 'Refreshing...', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					$log.addClass('hidden');
-
-					$.post(ajaxurl, {
-						action: 'cf_sync_refresh_count',
-						nonce: ajaxNonce
-					}, function(response) {
-						if (response.success) {
-							showLog($log, response.data.message, 'success');
-							setTimeout(function() {
-								location.reload();
-							}, 1500);
-						} else {
-							showLog($log, response.data.message, 'error');
-						}
-					}).fail(function() {
-						showLog($log, '<?php echo esc_js( __( 'Refresh communication failed.', 'cerber-lockout-cloudflare-sync' ) ); ?>', 'error');
-					}).always(function() {
-						$btn.prop('disabled', false).text('<?php echo esc_js( __( 'Refresh Capacity', 'cerber-lockout-cloudflare-sync' ) ); ?>');
-					});
-				});
-			});
-		</script>
-		<?php
+		// Load modular tabbed settings view.
+		include CERBER_CF_SYNC_PATH . 'includes/admin/views/settings-page.php';
 	}
 
 	/**
 	 * AJAX Handler: Test API connection credentials.
 	 */
 	public function ajax_test_connection() {
-		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
 		}
 
-		// Nonce check.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
 		}
@@ -733,7 +549,6 @@ class Cerber_CF_Sync_Admin_UI {
 			wp_send_json_error( array( 'message' => $test->get_error_message() ) );
 		}
 
-		// Cache list count as part of test connection.
 		$count = $api_client->get_list_item_count();
 		if ( ! is_wp_error( $count ) ) {
 			set_transient( 'cerber_cf_sync_list_count', $count, HOUR_IN_SECONDS );
@@ -752,17 +567,14 @@ class Cerber_CF_Sync_Admin_UI {
 	 * AJAX Handler: Manually trigger an IP Block synchronization.
 	 */
 	public function ajax_manual_ip() {
-		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
 		}
 
-		// Nonce check.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
 		}
 
-		// IP check.
 		if ( empty( $_POST['ip'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'Error: IP address parameter is missing.', 'cerber-lockout-cloudflare-sync' ) ) );
 		}
@@ -787,19 +599,16 @@ class Cerber_CF_Sync_Admin_UI {
 	 * AJAX Handler: Flush transient cache entries for blocked IPs.
 	 */
 	public function ajax_clear_cache() {
-		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
 		}
 
-		// Nonce check.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
 		}
 
 		global $wpdb;
 
-		// Delete cached lockout transients from wp_options database table.
 		$deleted_count = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
@@ -808,7 +617,6 @@ class Cerber_CF_Sync_Admin_UI {
 			)
 		);
 
-		// Reset error notification rate limiter.
 		delete_transient( 'cf_sync_err_email_sent' );
 		delete_transient( 'cerber_cf_sync_list_count' );
 
@@ -819,12 +627,10 @@ class Cerber_CF_Sync_Admin_UI {
 	 * AJAX Handler: Refresh and return the current list item count.
 	 */
 	public function ajax_refresh_count() {
-		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
 		}
 
-		// Nonce check.
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
 		}
@@ -851,5 +657,27 @@ class Cerber_CF_Sync_Admin_UI {
 				$percent
 			)
 		) );
+	}
+
+	/**
+	 * AJAX Handler: Manually trigger IP list purging.
+	 */
+	public function ajax_run_purge() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security error: Insufficient permissions.', 'cerber-lockout-cloudflare-sync' ) ), 403 );
+		}
+
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'cerber_cf_sync_ajax_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security verification failed. Invalid nonce.', 'cerber-lockout-cloudflare-sync' ) ), 400 );
+		}
+
+		$handler = Cerber_CF_Sync_Handler::get_instance();
+		$result  = $handler->purge_expired_and_overflowing_ips( true );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'message' => $result ) );
 	}
 }

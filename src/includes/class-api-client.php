@@ -359,5 +359,111 @@ class Cerber_CF_Sync_API_Client {
 			__( 'Could not retrieve item count from list metadata response.', 'cerber-lockout-cloudflare-sync' )
 		);
 	}
+
+	/**
+	 * Get items from the Cloudflare IP List.
+	 *
+	 * @param string $cursor   Optional cursor for pagination.
+	 * @param int    $per_page Number of items to retrieve per page (max 100).
+	 * @return array|WP_Error Array containing 'items' list and next page 'cursor', or WP_Error.
+	 */
+	public function get_list_items( $cursor = '', $per_page = 100 ) {
+		$creds = $this->get_credentials();
+
+		$valid = $this->validate_credentials( $creds );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$url = sprintf(
+			'%s/accounts/%s/rules/lists/%s/items?per_page=%d',
+			self::API_BASE,
+			urlencode( $creds['account_id'] ),
+			urlencode( $creds['list_id'] ),
+			intval( $per_page )
+		);
+
+		if ( ! empty( $cursor ) ) {
+			$url .= '&cursor=' . urlencode( $cursor );
+		}
+
+		$args = array(
+			'method'  => 'GET',
+			'headers' => $this->build_headers( $creds ),
+			'timeout' => 15,
+		);
+
+		$response = $this->send_request( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		$items        = isset( $data['result'] ) ? (array) $data['result'] : array();
+		$after_cursor = isset( $data['result_info']['cursors']['after'] ) ? $data['result_info']['cursors']['after'] : '';
+
+		return array(
+			'items'  => $items,
+			'cursor' => $after_cursor,
+		);
+	}
+
+	/**
+	 * Bulk delete items from the Cloudflare IP List.
+	 *
+	 * @param array $item_ids Array of Cloudflare list item IDs to remove.
+	 * @return true|WP_Error True on success, WP_Error on failure.
+	 */
+	public function delete_list_items( $item_ids ) {
+		if ( empty( $item_ids ) ) {
+			return true;
+		}
+
+		$creds = $this->get_credentials();
+
+		$valid = $this->validate_credentials( $creds );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$url = sprintf(
+			'%s/accounts/%s/rules/lists/%s/items',
+			self::API_BASE,
+			urlencode( $creds['account_id'] ),
+			urlencode( $creds['list_id'] )
+		);
+
+		$payload = array();
+		foreach ( (array) $item_ids as $id ) {
+			if ( preg_match( '/^[a-z0-9_-]+$/i', $id ) ) {
+				$payload[] = array( 'id' => $id );
+			}
+		}
+
+		if ( empty( $payload ) ) {
+			return new WP_Error(
+				'cf_invalid_delete_ids',
+				__( 'No valid item IDs provided for deletion.', 'cerber-lockout-cloudflare-sync' )
+			);
+		}
+
+		$args = array(
+			'method'  => 'DELETE',
+			'headers' => $this->build_headers( $creds ),
+			'body'    => wp_json_encode( $payload ),
+			'timeout' => 20,
+		);
+
+		$response = $this->send_request( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return true;
+	}
 }
 

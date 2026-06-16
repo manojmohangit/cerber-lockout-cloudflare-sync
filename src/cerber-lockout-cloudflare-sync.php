@@ -31,7 +31,7 @@ require_once CERBER_CF_SYNC_PATH . 'includes/class-notifier.php';
 require_once CERBER_CF_SYNC_PATH . 'includes/class-sync-handler.php';
 
 if ( is_admin() ) {
-	require_once CERBER_CF_SYNC_PATH . 'includes/class-admin-ui.php';
+	require_once CERBER_CF_SYNC_PATH . 'includes/admin/class-admin-ui.php';
 }
 
 /**
@@ -70,7 +70,7 @@ add_filter( 'plugin_action_links', 'cerber_cf_sync_plugin_action_links', 10, 2 )
 
 
 /**
- * Check if WP Cerber is active during plugin activation.
+ * Check if WP Cerber is active during plugin activation and schedule cron events.
  */
 function cerber_cf_sync_activate() {
 	if ( ! function_exists( 'cerber_get_options' ) && ! defined( 'CERBER_VER' ) ) {
@@ -84,8 +84,23 @@ function cerber_cf_sync_activate() {
 			array( 'back_link' => true )
 		);
 	}
+
+	// Schedule the daily purging cron event.
+	if ( ! wp_next_scheduled( 'cerber_cf_sync_daily_purging' ) ) {
+		wp_schedule_event( time(), 'daily', 'cerber_cf_sync_daily_purging' );
+	}
 }
 register_activation_hook( __FILE__, 'cerber_cf_sync_activate' );
+
+/**
+ * Unschedule cron events on plugin deactivation.
+ */
+function cerber_cf_sync_deactivate() {
+	wp_clear_scheduled_hook( 'cerber_cf_sync_daily_purging' );
+	wp_clear_scheduled_hook( 'cerber_cf_sync_instant_purge' );
+}
+register_deactivation_hook( __FILE__, 'cerber_cf_sync_deactivate' );
+
 
 /**
  * Show a persistent admin notice if WP Cerber Security is not active.

@@ -170,13 +170,21 @@ define( 'CLOUDFLARE_LIST_ID',    'your_32_char_list_id_here' );</code></pre>
         </section>
 
         <section id="capacity-limits">
-            <h2>5. Cloudflare List Capacity & Monitoring</h2>
-            <p>Cloudflare Account IP Lists have a strict capacity limit of <strong>10,000 items</strong>. If the list is saturated, Cloudflare will reject new IP additions, causing synchronization to fail.</p>
+            <h2>5. Cloudflare List Capacity & Purging</h2>
+            <p>Cloudflare Account IP Lists have a strict capacity limit of <strong>10,000 items</strong>. If the list is saturated, Cloudflare will reject new IP additions, causing synchronization to fail. The plugin handles this limit through automated tracking and purging:</p>
             
-            <h3>Capacity Tracking:</h3>
+            <h3>Capacity Tracking & Warning Thresholds:</h3>
             <ul>
                 <li><strong>Real-time Indicators:</strong> The plugin displays the current list size and percentage capacity directly under the settings page's <em>Diagnostics & Control Center</em>.</li>
-                <li><strong>Capacity Warnings:</strong> You can configure a <strong>Capacity Warning Threshold</strong> (defaults to <code>9,000</code>). When the list item count exceeds this threshold, a persistent warning notification will be shown on the main WordPress dashboard, prompting you to log in to Cloudflare to prune old IP blocks.</li>
+                <li><strong>Capacity Warnings:</strong> You can configure a <strong>Capacity Warning Threshold</strong> (defaults to <code>9,000</code>). When the list item count exceeds this threshold, a persistent warning notification will be shown on the main WordPress dashboard, prompting you to log in to Cloudflare to purge old IP blocks.</li>
+            </ul>
+
+            <h3>Automated IP List Purging:</h3>
+            <p>To prevent the list from ever hitting the 10,000-item limit, the plugin schedules background cron jobs to automatically manage and purge the list:</p>
+            <ul>
+                <li><strong>Time-Based Purging (IP Expiration):</strong> Set the <strong>IP Expiration Period</strong> (e.g. 30 days). A daily WordPress cron task will scan the Cloudflare list and remove any IP block older than the expiration period.</li>
+                <li><strong>Capacity-Based Purging (List Cap Overflow):</strong> Define a <strong>Maximum IP List Size</strong> (e.g. 9,500). If this limit is breached, the plugin automatically triggers an asynchronous background job to delete a specified block size of the oldest items (configured via the <strong>Purge Quantity</strong> setting).</li>
+                <li><strong>Manual Run:</strong> You can trigger a full purging run at any time using the <strong>Purge List Now</strong> diagnostics button.</li>
             </ul>
         </section>
     </main>

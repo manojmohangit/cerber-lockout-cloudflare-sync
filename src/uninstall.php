@@ -23,5 +23,11 @@ $wpdb->query(
 	)
 );
 
-// Delete error email rate limit transient.
+// Delete error email rate limit transient and capacity tracking transient.
 delete_transient( 'cf_sync_err_email_sent' );
+delete_transient( 'cerber_cf_sync_list_count' );
+
+// Clear scheduled cron events.
+wp_clear_scheduled_hook( 'cerber_cf_sync_daily_purging' );
+wp_clear_scheduled_hook( 'cerber_cf_sync_instant_purge' );
+
